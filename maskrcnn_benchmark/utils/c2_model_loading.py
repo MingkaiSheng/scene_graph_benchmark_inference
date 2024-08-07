@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
-# Copyright (c) 2021 Microsoft Corporation. Licensed under the MIT license. 
+# Copyright (c) 2021 Microsoft Corporation. Licensed under the MIT license.
 import logging
 import pickle
 from collections import OrderedDict
@@ -24,8 +24,10 @@ def _rename_basic_resnet_weights(layer_keys):
     # RPN / Faster RCNN
     layer_keys = [k.replace(".biasbox", ".bbox") for k in layer_keys]
     layer_keys = [k.replace("conv.rpn", "rpn.conv") for k in layer_keys]
-    layer_keys = [k.replace("rpn.bbox.pred", "rpn.bbox_pred") for k in layer_keys]
-    layer_keys = [k.replace("rpn.cls.logits", "rpn.cls_logits") for k in layer_keys]
+    layer_keys = [k.replace("rpn.bbox.pred", "rpn.bbox_pred")
+                  for k in layer_keys]
+    layer_keys = [k.replace("rpn.cls.logits", "rpn.cls_logits")
+                  for k in layer_keys]
 
     # Affine-Channel -> BatchNorm enaming
     layer_keys = [k.replace("_bn.scale", "_bn.weight") for k in layer_keys]
@@ -46,7 +48,8 @@ def _rename_basic_resnet_weights(layer_keys):
     layer_keys = [k.replace(".branch2c_bn.", ".bn3.") for k in layer_keys]
 
     layer_keys = [k.replace(".branch1.", ".downsample.0.") for k in layer_keys]
-    layer_keys = [k.replace(".branch1_bn.", ".downsample.1.") for k in layer_keys]
+    layer_keys = [k.replace(".branch1_bn.", ".downsample.1.")
+                  for k in layer_keys]
 
     # GroupNorm
     layer_keys = [k.replace("conv1.gn.s", "bn1.weight") for k in layer_keys]
@@ -55,12 +58,13 @@ def _rename_basic_resnet_weights(layer_keys):
     layer_keys = [k.replace("conv2.gn.bias", "bn2.bias") for k in layer_keys]
     layer_keys = [k.replace("conv3.gn.s", "bn3.weight") for k in layer_keys]
     layer_keys = [k.replace("conv3.gn.bias", "bn3.bias") for k in layer_keys]
-    layer_keys = [k.replace("downsample.0.gn.s", "downsample.1.weight") \
-        for k in layer_keys]
-    layer_keys = [k.replace("downsample.0.gn.bias", "downsample.1.bias") \
-        for k in layer_keys]
+    layer_keys = [k.replace("downsample.0.gn.s", "downsample.1.weight")
+                  for k in layer_keys]
+    layer_keys = [k.replace("downsample.0.gn.bias", "downsample.1.bias")
+                  for k in layer_keys]
 
     return layer_keys
+
 
 def _rename_fpn_weights(layer_keys, stage_names):
     for mapped_idx, stage_name in enumerate(stage_names, 1):
@@ -70,11 +74,12 @@ def _rename_fpn_weights(layer_keys, stage_names):
         layer_keys = [
             k.replace("fpn.inner.layer{}.sum{}".format(stage_name, suffix), "fpn_inner{}".format(mapped_idx)) for k in layer_keys
         ]
-        layer_keys = [k.replace("fpn.layer{}.sum".format(stage_name), "fpn_layer{}".format(mapped_idx)) for k in layer_keys]
-
+        layer_keys = [k.replace("fpn.layer{}.sum".format(
+            stage_name), "fpn_layer{}".format(mapped_idx)) for k in layer_keys]
 
     layer_keys = [k.replace("rpn.conv.fpn2", "rpn.conv") for k in layer_keys]
-    layer_keys = [k.replace("rpn.bbox_pred.fpn2", "rpn.bbox_pred") for k in layer_keys]
+    layer_keys = [k.replace("rpn.bbox_pred.fpn2", "rpn.bbox_pred")
+                  for k in layer_keys]
     layer_keys = [
         k.replace("rpn.cls_logits.fpn2", "rpn.cls_logits") for k in layer_keys
     ]
@@ -97,12 +102,14 @@ def _rename_weights_for_resnet(weights, stage_names):
     layer_keys = _rename_fpn_weights(layer_keys, stage_names)
 
     # Mask R-CNN
-    layer_keys = [k.replace("mask.fcn.logits", "mask_fcn_logits") for k in layer_keys]
+    layer_keys = [k.replace("mask.fcn.logits", "mask_fcn_logits")
+                  for k in layer_keys]
     layer_keys = [k.replace(".[mask].fcn", "mask_fcn") for k in layer_keys]
     layer_keys = [k.replace("conv5.mask", "conv5_mask") for k in layer_keys]
 
     # Keypoint R-CNN
-    layer_keys = [k.replace("kps.score.lowres", "kps_score_lowres") for k in layer_keys]
+    layer_keys = [k.replace("kps.score.lowres", "kps_score_lowres")
+                  for k in layer_keys]
     layer_keys = [k.replace("kps.score", "kps_score") for k in layer_keys]
     layer_keys = [k.replace("conv.fcn", "conv_fcn") for k in layer_keys]
 
@@ -113,7 +120,8 @@ def _rename_weights_for_resnet(weights, stage_names):
 
     logger = logging.getLogger(__name__)
     logger.info("Remapping C2 weights")
-    max_c2_key_size = max([len(k) for k in original_keys if "_momentum" not in k])
+    max_c2_key_size = max([len(k)
+                          for k in original_keys if "_momentum" not in k])
 
     new_weights = OrderedDict()
     for k in original_keys:
@@ -125,7 +133,8 @@ def _rename_weights_for_resnet(weights, stage_names):
         w = torch.from_numpy(v)
         # if "bn" in k:
         #     w = w.view(1, -1, 1, 1)
-        logger.info("C2 name: {: <{}} mapped name: {}".format(k, max_c2_key_size, key_map[k]))
+        logger.info("C2 name: {: <{}} mapped name: {}".format(
+            k, max_c2_key_size, key_map[k]))
         new_weights[key_map[k]] = w
 
     return new_weights
@@ -133,10 +142,10 @@ def _rename_weights_for_resnet(weights, stage_names):
 
 def _load_c2_pickled_weights(file_path):
     with open(file_path, "rb") as f:
-        if torch._six.PY3:
-            data = pickle.load(f, encoding="latin1")
-        else:
-            data = pickle.load(f)
+        # if torch._six.PY3:
+        data = pickle.load(f, encoding="latin1")
+        # else:
+        #     data = pickle.load(f)
     if "blobs" in data:
         weights = data["blobs"]
     else:
@@ -199,7 +208,8 @@ def load_resnet_c2_format(cfg, f):
     state_dict = _rename_weights_for_resnet(state_dict, stages)
     # ***********************************
     # for deformable convolutional layer
-    state_dict = _rename_conv_weights_for_deformable_conv_layers(state_dict, cfg)
+    state_dict = _rename_conv_weights_for_deformable_conv_layers(
+        state_dict, cfg)
     # ***********************************
     return dict(model=state_dict)
 

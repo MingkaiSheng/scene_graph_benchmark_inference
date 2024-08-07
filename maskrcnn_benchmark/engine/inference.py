@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
-# Copyright (c) 2021 Microsoft Corporation. Licensed under the MIT license. 
+# Copyright (c) 2021 Microsoft Corporation. Licensed under the MIT license.
 import imp
 import logging
 import time
@@ -90,26 +90,32 @@ def convert_predictions_to_tsv(predictions, dataset, output_folder,
         elif hasattr(dataset, 'ind_to_class'):
             labelmap = dataset.ind_to_class
         else:
-            raise ValueError("object labelmap is required, but was not provided")
+            raise ValueError(
+                "object labelmap is required, but was not provided")
     if 'attr_labels' in data_subset:
         if os.path.isfile(labelmap_file):
-            attr_labelmap = json.load(open(labelmap_file, 'r'))['attribute_to_idx']
+            attr_labelmap = json.load(open(labelmap_file, 'r'))[
+                'attribute_to_idx']
             attr_labelmap['__no_attribute__'] = 0
-            attr_labelmap = {v:k for k, v in attr_labelmap.items()}
+            attr_labelmap = {v: k for k, v in attr_labelmap.items()}
         elif hasattr(dataset, 'ind_to_attribute'):
             attr_labelmap = dataset.ind_to_attribute
         else:
-            raise ValueError("attribute labelmap is required, but was not provided")
+            raise ValueError(
+                "attribute labelmap is required, but was not provided")
     if 'relations' in data_subset:
         if os.path.isfile(labelmap_file):
-            relation_labelmap = json.load(open(labelmap_file, 'r'))['predicate_to_idx']
+            relation_labelmap = json.load(open(labelmap_file, 'r'))[
+                'predicate_to_idx']
             relation_labelmap['__no_relation__'] = 0
-            relation_labelmap = {relation_labelmap[key]: key for key in relation_labelmap}
+            relation_labelmap = {
+                relation_labelmap[key]: key for key in relation_labelmap}
         elif hasattr(dataset, 'ind_to_relation'):
             relation_labelmap = dataset.ind_to_relation
         else:
-            raise ValueError("relation labelmap is required, but was not provided")
-    
+            raise ValueError(
+                "relation labelmap is required, but was not provided")
+
     def gen_rows():
         for idx, prediction in sorted(predictions.items()):
             image_key = dataset.get_img_key(idx)
@@ -124,9 +130,11 @@ def convert_predictions_to_tsv(predictions, dataset, output_folder,
                 relation_scores = prediction_pred.get_field("scores").numpy()
                 predicates = prediction_pred.get_field("labels").numpy()
                 if 'relation_scores_all' in data_subset:
-                    relation_scores_all = prediction_pred.get_field("scores_all").numpy()
+                    relation_scores_all = prediction_pred.get_field(
+                        "scores_all").numpy()
                 if 'relation_feature' in data_subset:
-                    relation_features = prediction_pred.get_field("pred_features").numpy()
+                    relation_features = prediction_pred.get_field(
+                        "pred_features").numpy()
 
             prediction = prediction.resize((image_width, image_height))
             boxes = prediction.bbox.tolist()
@@ -146,14 +154,17 @@ def convert_predictions_to_tsv(predictions, dataset, output_folder,
             if "attr_scores" in data_subset:
                 attr_scores = prediction.get_field("attr_scores").tolist()
             if "attr_scores_all" in data_subset:
-                attr_scores_all = prediction.get_field("attr_scores_all").numpy()
+                attr_scores_all = prediction.get_field(
+                    "attr_scores_all").numpy()
             if 'relations' in data_subset:
                 relations = relations.tolist()
-                predicates = [relation_labelmap[rel+1] for rel in predicates.tolist()]
+                predicates = [relation_labelmap[rel + 1]
+                              for rel in predicates.tolist()]
             if 'relation_scores' in data_subset:
                 relation_scores = relation_scores.tolist()
             if 'relation_scores_all' in data_subset:
-                relation_scores_all = [base64.b64encode(relation_scores_all[i]).decode('utf-8') for i in range(len(relations))]
+                relation_scores_all = [base64.b64encode(relation_scores_all[i]).decode(
+                    'utf-8') for i in range(len(relations))]
 
             objects = []
             for i in range(len(boxes)):
@@ -187,7 +198,7 @@ def convert_predictions_to_tsv(predictions, dataset, output_folder,
                         cur_d['attr_scores_all'] = base64.b64encode(attr_scores_all[i]) \
                             .decode('utf-8')
                 objects.append(cur_d)
-            
+
             triplets = None
             if relation_on:
                 triplets = []
@@ -203,11 +214,12 @@ def convert_predictions_to_tsv(predictions, dataset, output_folder,
                         if name == 'relation_scores_all':
                             cur_d['scores_all'] = relation_scores_all[i]
                         if name == 'relation_feature':
-                            cur_d['relation_feature'] = base64.b64encode(relation_features[i]).decode('utf-8')
+                            cur_d['relation_feature'] = base64.b64encode(
+                                relation_features[i]).decode('utf-8')
                     triplets.append(cur_d)
-            
-            yield image_key, json.dumps({'objects': objects, 'relations':triplets})
-    
+
+            yield image_key, json.dumps({'objects': objects, 'relations': triplets})
+
     tsv_writer(gen_rows(), os.path.join(output_folder, output_tsv_name))
 
 
@@ -233,7 +245,8 @@ def inference(
     num_devices = get_world_size()
     logger = logging.getLogger("maskrcnn_benchmark.inference")
     dataset = data_loader.dataset
-    logger.info("Start evaluation on {} dataset({} images).".format(dataset_name, len(dataset)))
+    logger.info("Start evaluation on {} dataset({} images).".format(
+        dataset_name, len(dataset)))
     total_timer = Timer()
     inference_timer = Timer()
     total_timer.tic()
@@ -245,7 +258,8 @@ def inference(
         if not is_main_process():
             return
         if cfg.TEST.SAVE_RESULTS_TO_TSV or not cfg.TEST.SKIP_PERFORMANCE_EVAL:
-            predictions = torch.load(os.path.join(output_folder, output_pth_name))
+            predictions = torch.load(os.path.join(
+                output_folder, output_pth_name))
     else:
         if eval_attributes:
             # change to force_boxes=True mode
@@ -259,7 +273,8 @@ def inference(
             model.force_boxes = force_boxes_model
             model.roi_heads.box.post_processor.force_boxes = force_boxes_box
         else:
-            predictions = compute_on_dataset(model, data_loader, device, bbox_aug, inference_timer)
+            predictions = compute_on_dataset(
+                model, data_loader, device, bbox_aug, inference_timer)
     # wait for all processes to complete before measuring the time
     synchronize()
     total_time = total_timer.toc()
@@ -278,14 +293,15 @@ def inference(
         )
     )
 
-    predictions = _accumulate_predictions_from_multiple_gpus(predictions, cfg.TEST.GATHER_ON_CPU)
+    predictions = _accumulate_predictions_from_multiple_gpus(
+        predictions, cfg.TEST.GATHER_ON_CPU)
 
     if not is_main_process():
         return
 
     if output_folder and save_predictions:
         torch.save(predictions, os.path.join(output_folder, output_pth_name))
-    
+
     if output_folder and cfg.TEST.SAVE_RESULTS_TO_TSV:
         logger.info("Convert prediction results to tsv format and save.")
         output_tsv_name = 'predictions_forcebox.tsv' if eval_attributes else 'predictions.tsv'
@@ -296,7 +312,7 @@ def inference(
             output_tsv_name=output_tsv_name,
             relation_on=cfg.MODEL.RELATION_ON,
         )
-    
+
     if skip_performance_eval:
         logger.info("Skip performance evaluation and return.")
         return

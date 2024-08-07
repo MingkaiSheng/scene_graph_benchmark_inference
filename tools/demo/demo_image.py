@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Microsoft Corporation. Licensed under the MIT license. 
+# Copyright (c) 2021 Microsoft Corporation. Licensed under the MIT license.
 
 import cv2
 import os.path as op
@@ -105,7 +105,7 @@ def main():
         dataset_attr_labelmap = {
             int(val): key for key, val in
             dataset_allmap['attribute_to_idx'].items()}
-    
+
     if cfg.MODEL.RELATION_ON and args.visualize_relation:
         dataset_relation_labelmap = {
             int(val): key for key, val in
@@ -125,22 +125,24 @@ def main():
         dets = [d for d in dets if d['class'] in visual_labelmap]
     if cfg.MODEL.ATTRIBUTE_ON and args.visualize_attr:
         for obj in dets:
-            obj["attr"], obj["attr_conf"] = postprocess_attr(dataset_attr_labelmap, obj["attr"], obj["attr_conf"])
+            obj["attr"], obj["attr_conf"] = postprocess_attr(
+                dataset_attr_labelmap, obj["attr"], obj["attr_conf"])
     if cfg.MODEL.RELATION_ON and args.visualize_relation:
         for rel in rel_dets:
             rel['class'] = dataset_relation_labelmap[rel['class']]
             subj_rect = dets[rel['subj_id']]['rect']
-            rel['subj_center'] = [(subj_rect[0]+subj_rect[2])/2, (subj_rect[1]+subj_rect[3])/2]
+            rel['subj_center'] = [
+                (subj_rect[0] + subj_rect[2]) / 2, (subj_rect[1] + subj_rect[3]) / 2]
             obj_rect = dets[rel['obj_id']]['rect']
-            rel['obj_center'] = [(obj_rect[0]+obj_rect[2])/2, (obj_rect[1]+obj_rect[3])/2]
-
+            rel['obj_center'] = [
+                (obj_rect[0] + obj_rect[2]) / 2, (obj_rect[1] + obj_rect[3]) / 2]
 
     rects = [d["rect"] for d in dets]
     scores = [d["conf"] for d in dets]
     if cfg.MODEL.ATTRIBUTE_ON and args.visualize_attr:
         attr_labels = [','.join(d["attr"]) for d in dets]
         attr_scores = [d["attr_conf"] for d in dets]
-        labels = [attr_label+' '+d["class"]
+        labels = [attr_label + ' ' + d["class"]
                   for d, attr_label in zip(dets, attr_labels)]
     else:
         labels = [d["class"] for d in dets]
@@ -152,7 +154,8 @@ def main():
         rel_obj_centers = [r['obj_center'] for r in rel_dets]
         rel_scores = [r['conf'] for r in rel_dets]
         rel_labels = [r['class'] for r in rel_dets]
-        draw_rel(cv2_img, rel_subj_centers, rel_obj_centers, rel_labels, rel_scores)
+        draw_rel(cv2_img, rel_subj_centers,
+                 rel_obj_centers, rel_labels, rel_scores)
 
     if not args.save_file:
         save_file = op.splitext(args.img_file)[0] + ".detect.jpg"
@@ -165,9 +168,9 @@ def main():
     if cfg.MODEL.ATTRIBUTE_ON and args.visualize_attr:
         result_str = ""
         for label, score, attr_score in zip(labels, scores, attr_scores):
-            result_str += label+'\n'
+            result_str += label + '\n'
             result_str += ','.join([str(conf) for conf in attr_score])
-            result_str += '\t'+str(score)+'\n'
+            result_str += '\t' + str(score) + '\n'
         text_save_file = op.splitext(save_file)[0] + '.txt'
         with open(text_save_file, "w") as fid:
             fid.write(result_str)

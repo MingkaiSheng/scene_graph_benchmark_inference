@@ -12,6 +12,8 @@ dist/
 *.pkl
 *.npy
 
+data/datasets*
+
 # ipython/jupyter notebooks
 *.ipynb
 **/.ipynb_checkpoints/

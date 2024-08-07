@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
-# Copyright (c) 2021 Microsoft Corporation. Licensed under the MIT license. 
+# Copyright (c) 2021 Microsoft Corporation. Licensed under the MIT license.
 # Set up custom environment before nearly anything else is imported
 # NOTE: this should be the first import (no not reorder)
 from maskrcnn_benchmark.utils.env import setup_environment  # noqa F401 isort:skip
@@ -52,8 +52,10 @@ def run_test(cfg, model, distributed, model_name):
                 )
                 mkdir(output_folder)
                 output_folders[idx] = output_folder
-    data_loaders_val = make_data_loader(cfg, is_train=False, is_distributed=distributed)
-    labelmap_file = config_dataset_file(cfg.DATA_DIR, cfg.DATASETS.LABELMAP_FILE)
+    data_loaders_val = make_data_loader(
+        cfg, is_train=False, is_distributed=distributed)
+    labelmap_file = config_dataset_file(
+        cfg.DATA_DIR, cfg.DATASETS.LABELMAP_FILE)
     for output_folder, dataset_name, data_loader_val in zip(output_folders, dataset_names, data_loaders_val):
         results = inference(
             model,
@@ -93,7 +95,8 @@ def run_test(cfg, model, distributed, model_name):
 
     # evaluate attribute detection
     if not cfg.MODEL.RPN_ONLY and cfg.MODEL.ATTRIBUTE_ON and (not cfg.TEST.SKIP_PERFORMANCE_EVAL):
-        data_loaders_val = make_data_loader(cfg, is_train=False, is_distributed=distributed)
+        data_loaders_val = make_data_loader(
+            cfg, is_train=False, is_distributed=distributed)
         for output_folder, dataset_name, data_loader_val in zip(
             output_folders, dataset_names, data_loaders_val
         ):
@@ -131,14 +134,15 @@ def run_test(cfg, model, distributed, model_name):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="PyTorch Object Detection Inference")
+    parser = argparse.ArgumentParser(
+        description="PyTorch Object Detection Inference")
     parser.add_argument(
         "--config-file",
         default="/private/home/fmassa/github/detectron.pytorch_v2/configs/e2e_faster_rcnn_R_50_C4_1x_caffe2.yaml",
         metavar="FILE",
         help="path to config file",
     )
-    parser.add_argument("--local_rank", type=int, default=0)
+    parser.add_argument("--local-rank", type=int, default=0)
     parser.add_argument(
         "--ckpt",
         help="The path to the checkpoint for test, default is the latest checkpoint.",
@@ -153,7 +157,8 @@ def main():
 
     args = parser.parse_args()
 
-    num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
+    num_gpus = int(os.environ["WORLD_SIZE"]
+                   ) if "WORLD_SIZE" in os.environ else 1
     args.distributed = num_gpus > 1
 
     cfg.set_new_allowed(True)
