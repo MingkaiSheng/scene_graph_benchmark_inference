@@ -1,3 +1,18 @@
+
+## Update 🔥
+**Now, the repo supports Pytorch2.0+Cuda11.8**
+
+Create your virtual environment an install the following dependencies according to your system specs.
+- PyTorch 2.0 + cuda 11.8
+
+* batch images inference
+
+-  /data/tsv_generation/tsv_create.py to create images tsv files
+
+-  scripts/inference-gpus.sh to run inference on the tsv files
+
+
+
 # Scene Graph Benchmark in PyTorch 1.7
 
 **This project is based on [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark)**
@@ -88,18 +103,18 @@ process will only use a single GPU.
 
 ```bash
 export NGPUS=4
-python -m torch.distributed.launch --nproc_per_node=$NGPUS tools/train_sg_net.py --config-file "path/to/config/file.yaml" 
+python -m torch.distributed.launch --nproc_per_node=$NGPUS tools/train_sg_net.py --config-file "path/to/config/file.yaml"
 ```
 
 
 ## Evaluation
-You can test your model directly on single or multiple gpus. 
+You can test your model directly on single or multiple gpus.
 To evaluate relations, one needs to output "relation_scores_all" in the TSV_SAVE_SUBSET.
 Here are a few example command line for evaluating on 4 GPUS:
 ```bash
 export NGPUS=4
 
-python -m torch.distributed.launch --nproc_per_node=$NGPUS tools/test_sg_net.py --config-file CONFIG_FILE_PATH 
+python -m torch.distributed.launch --nproc_per_node=$NGPUS tools/test_sg_net.py --config-file CONFIG_FILE_PATH
 
 # vg IMP evaluation
 python -m torch.distributed.launch --nproc_per_node=$NGPUS tools/test_sg_net.py --config-file sgg_configs/vg_vrd/rel_danfeiX_FPN50_imp.yaml
@@ -170,7 +185,7 @@ class MyDataset(RelationTSVDataset):
             is_load_label=True, **kwargs):
 
         super(MyDataset, self).__init__(yaml_file, extra_fields, transforms, is_load_label, **kwargs)
-    
+
     def your_own_function(self, idx, call=False):
         # you can overwrite function or add your own functions this way
         pass
@@ -202,7 +217,7 @@ The output feature will be encoded as base64
 # the associated labelmap at https://penzhanwu2.blob.core.windows.net/sgg/sgg_benchmark/vinvl_model_zoo/VG-SGG-dicts-vgoi6-clipped.json
 python tools/test_sg_net.py --config-file sgg_configs/vgattr/vinvl_x152c4.yaml TEST.IMS_PER_BATCH 2 MODEL.WEIGHT models/vinvl/vinvl_vg_x152c4.pth MODEL.ROI_HEADS.NMS_FILTER 1 MODEL.ROI_HEADS.SCORE_THRESH 0.2 DATA_DIR "../maskrcnn-benchmark-1/datasets1" TEST.IGNORE_BOX_REGRESSION True MODEL.ATTRIBUTE_ON True
 ```
-To extract relation features (union bounding box's feature), in yaml file, set `TEST.OUTPUT_RELATION_FEATURE` to  `True`, add `relation_feature` in `TEST.TSV_SAVE_SUBSET`. 
+To extract relation features (union bounding box's feature), in yaml file, set `TEST.OUTPUT_RELATION_FEATURE` to  `True`, add `relation_feature` in `TEST.TSV_SAVE_SUBSET`.
 
 To extract bounding box features, in yaml file, set `TEST.OUTPUT_FEATURE` to  `True`, add `feature` in `TEST.TSV_SAVE_SUBSET`.
 
@@ -216,7 +231,7 @@ free to open a new issue.
 Please consider citing this project in your publications if it helps your research. The following is a BibTeX reference. The BibTeX entry requires the `url` LaTeX package.
 ```
 @misc{han2021image,
-      title={Image Scene Graph Generation (SGG) Benchmark}, 
+      title={Image Scene Graph Generation (SGG) Benchmark},
       author={Xiaotian Han and Jianwei Yang and Houdong Hu and Lei Zhang and Jianfeng Gao and Pengchuan Zhang},
       year={2021},
       eprint={2107.12604},
@@ -226,7 +241,7 @@ Please consider citing this project in your publications if it helps your resear
 
 ```
 
-  
+
 ## License
 
 maskrcnn-benchmark is released under the MIT license. See [LICENSE](LICENSE) for additional details.
