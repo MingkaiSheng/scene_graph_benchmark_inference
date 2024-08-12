@@ -22,8 +22,8 @@ label_file = "./data/train.label.tsv"
 hw_file = "./data/train.hw.tsv"
 linelist_file = "./data/train.linelist.tsv"
 """
-root_path = "/home/smk/workspace/scene_graph_benchmark/maskrcnn-benchmark-1/datasets1/tsv_generator/generator_data"
-data_path = "/data/smk/shm/albef/ve/flickr30k-images"
+root_path = "/data/smk/dataset/SBU"
+data_path = "/data/smk/shm/albef/SBU/dataset/"
 img_list = os.listdir(data_path)
 tsv_file = os.path.join(root_path, "img.tsv")
 label_file = os.path.join(root_path, "label.tsv")
@@ -39,9 +39,16 @@ for img_p in tqdm(img_list, colour="green", desc="Processing"):
     #   break
     img_key = img_p.split('.')[0]
 
-    img_path = op.join(data_path, img_p)
-    img = cv2.imread(img_path)
-    img_encoded_str = base64.b64encode(cv2.imencode('.jpg', img)[1])
+    try:
+        img_path = op.join(data_path, img_p)
+        img = cv2.imread(img_path)
+        img_encoded_str = base64.b64encode(cv2.imencode('.jpg', img)[1])
+    except UserWarning as msg:
+        print(f"Error: {e}\t{img_p}")
+        continue
+    except Exception as e:
+        print(f"Error: {e}\t{img_p}")
+        continue
 
     # Here is just a toy example of labels.
     # The real labels can be generated from the annotation files
@@ -63,12 +70,12 @@ for img_p in tqdm(img_list, colour="green", desc="Processing"):
     row_hw = [img_key, json.dumps([{"height": height, "width": width}])]
     rows_hw.append(row_hw)
 
-tsv_writer(rows, tsv_file)
-tsv_writer(rows_label, label_file)
+# tsv_writer(rows, tsv_file)
+# tsv_writer(rows_label, label_file)
 tsv_writer(rows_hw, hw_file)
 
 # generate linelist file
-generate_linelist_file(label_file, save_file=linelist_file)
+# generate_linelist_file(label_file, save_file=linelist_file)
 
 
 # # To access a tsv file:
